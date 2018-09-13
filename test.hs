@@ -3,9 +3,11 @@ data Edge  a = Edge (a, String, Float) deriving (Show, Read, Eq)
 data Node  a = Node (a,[Edge a]) deriving (Show, Read, Eq)
 data Bus   a = Bus (String, Float)
 
+path = [("b","a-pe",0.4),("d","linha-370",0.1),("f","a-pe",3.0),("c","a-pe",0.3)]
 g0 = [("a",[("b","a-pe",0.4),("d","linha-370",0.1)]),("b",[("a","a-pe",0.6),("c","a-pe",0.5)]),("c",[("b","a-pe",0.5),("d","a-pe",0.3)])]
 g1 = [("d",[("c","a-pe",0.3),("f","a-pe",3.0)]),("f",[("h","a-pe",12.3),("h","linha-567",1.2)]),("h",[])]
-g = g0++g1
+g3 = [("a",[("b","linha-666",0.5)]),("b",[("c","linha-666",0.2)]),("c",[("d","linha-666",0.1)]),("d",[])]
+g =g3
 
 addEdge node link ((v,es):graph)
   | (node == v) = (v,(link:es)):graph
@@ -19,20 +21,20 @@ mergeBusPaths g (b:bs) = foldVertex (mergeBusPaths g bs) g b
 foldVertex [] g _ = g
 foldVertex (gi:gs) g b = addPaths gi (foldVertex gs g b) b
 
--- addPaths :: Node a -> [Node a] -> Bus b -> [Node a]
-addPaths (v,e) g b
-  | (length p < 2) = g
-  | otherwise = foldr (\x acc -> addEdge o x acc) g (combEdges p $ last b)
-  where (o,p) = ("a",[])--tracePaths g e b (v,[]) [v]
+--addPaths checked
+addPaths (v,e) g (l,wt)
+  | (length paths < 2) = g
+  | otherwise = foldr (\x acc -> addEdge v x acc) g $ combEdges paths wt
+  where paths = tracePaths g e l [] [v]
 
--- seekPaths :: [Node a] -> [Edge a] -> Bus b -> Node a -> [a] -> (a,[Edge a])
--- tracePaths g pe b (o,p) visited
---   | test = tracePaths g (getE g v) b (o, p++next) (v:visited)
---   | otherwise = (o,p)
---   where
---     test = (next /= [])&&(not $ elem v visited)
---     (v,_,_) = next
---     next = filter (\(_,mode,_) -> mode == b) pe
+-- tracePaths checked
+tracePaths g pe b p visited
+  | test = tracePaths g (getE v g) b (p++next) (v:visited)
+  | otherwise = p
+  where
+    test = (next /= [])&&(not $ elem v visited)
+    (v,_,_) = head next
+    next = filter (\(_,mode,_) -> mode == b) pe
 
 -- combEdges Checked
 combEdges ((v,t,w):p) wt = combEdges' (tail p) [(joinEdges e0 $ head p)]
