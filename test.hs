@@ -14,8 +14,8 @@ addEdge node link ((v,es):graph)
   | otherwise = (v,es):addEdge node link graph
 
 -- mergeBusPaths :: [Node a] -> [Bus b] -> [Node a]
-mergeBusPaths g [] = g
-mergeBusPaths g (b:bs) = foldVertex (mergeBusPaths g bs) g b
+mergeBusPaths [] g = []
+mergeBusPaths ((l,_):bs) g = foldVertex (mergeBusPaths bs g) g l
 
 -- foldVertex :: [Node a] -> [Node a] -> Bus b -> [Node a]
 foldVertex [] g _ = g
