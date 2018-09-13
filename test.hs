@@ -34,14 +34,17 @@ addPaths (v,e) g b
 --     (v,_,_) = next
 --     next = filter (\(_,mode,_) -> mode == b) pe
 
+-- combEdges Checked
 combEdges ((v,t,w):p) wt = combEdges' (tail p) [(joinEdges e0 $ head p)]
   where e0 = (v,t,w+wt)
 
+-- combEdges' Checked
 combEdges' [] acc = acc
 combEdges' p acc = combEdges' (tail p) $ (joinEdges (head acc) $ head p):acc
 
 -- joinEdges Checked
-joinEdges (ov,ot,ow) (v,t,w) = (v,ot++" "++ov++" "++t,ow+w)
+joinEdges (ov,ot,ow) (v,t,w) = (v,ot++" "++ov++" "++t,nw)
+  where nw = (fromIntegral $ floor ((ow+w)*10))/10
 
 -- GetE checked
 getE target g = edges
