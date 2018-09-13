@@ -19,14 +19,14 @@ buildGraph b (x:xs) = addEdge n (v,t,total_w) (buildGraph b xs)
     total_w = foldl (\c (l,wt) -> if l == t then c+wt else c) (read w::Float) b
     (n:v:t:[w]) = splitOn " " x
 
+--TODO reduce from multi to simple graph
 reduce [] = []
-reduce ((v,e),gs) = (v,getShort e e):(reduce gs)
-getShort ((v,t,w):es) acc
-  | (remove e es)
-  where
-    survivor = getMin kill
-    kill = filter (\(n,_,_) -> v == n) acc
+reduce ((v,e),gs) = (v,getShort e):(reduce gs)
 
+--TODO reduce from  multi to simple graph
+getShort e = foldr (\(n,_,_) c -> (getMin $ filter (\(n,_,_) -> v == n)):c) [] e
+
+--TODO reduce from mutli to simple graph
 getMin (k:ks) = foldl (\c x -> if test c x then c else x ) k ks
   where test (v1,t1,w1) (v2,t2,w2) = w1 < w1
 
@@ -44,34 +44,35 @@ splitData' (x:xs) acc
 
 -- mergeBusPaths Checked
 mergePaths [] g = []
-mergePaths ((l,_):bs) g = foldVertex (mergeBusPaths bs g) g l
+mergePaths (b:bs) g = foldVertex (mergeBusPaths bs g) g b
 
 -- TODO NOT Checked
 foldVertex [] g _ = g
 foldVertex (gi:gs) g b = addPaths gi (foldVertex gs g b) b
 
---addPaths checked
-addPaths (v,e) g b
+--TODO Fixing initial sum issue
+addPaths (v,e) g (l,w)
   | (length paths < 2) = g
-  | otherwise = foldr (\x acc -> addEdge v x acc) g $ combEdges paths
-  where paths = tracePaths g e b [] [v]
+  | otherwise = foldr (\x acc -> addEdge v x acc) g $ combEdges paths w
+  where paths = tracePaths g e l [] [v]
 
 -- tracePaths checked
-tracePaths g pe b p visited
-  | test = tracePaths g (getE v g) b (p++next) (v:visited)
+tracePaths g pe l p visited
+  | test = tracePaths g (getE v g) l (p++next) (v:visited)
   | otherwise = p
   where
     test = (next /= [])&&(not $ elem v visited)
     (v,_,_) = head next
-    next = filter (\(_,mode,_) -> mode == b) pe
+    next = filter (\(_,mode,_) -> mode == l) pe
 
--- combEdges Checked
-combEdges ((v,t,w):p) = combEdges' (tail p) [(joinEdges e0 $ head p)]
-  where e0 = (v,t,w)
+-- TODO Fixing initial sum issue
+combEdges (p:ps) w = combEdges' w (tail ps) [(joinEdges p $ head ps)]
 
--- combEdges' Checked
+-- TODO Fixing initial sum issue
 combEdges' [] acc = acc
-combEdges' p acc = combEdges' (tail p) $ (joinEdges (head acc) $ head p):acc
+combEdges' (p:ps) acc = combEdges' w ps $ joinEdges (head acc) $ (v,t,wt)):acc
+  where wt = w0 - w
+        (v,t,w0) = p
 
 -- joinEdges Checked
 joinEdges (ov,ot,ow) (v,t,w) = (v,ot++" "++ov++" "++t,nw)
