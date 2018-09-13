@@ -1,23 +1,22 @@
-import Data.List.Split
 
 main = do
   text <- readFile "in0.txt"
   let contents = splitData $ lines text
       waitTime = getBusData $ contents!!1
       graph = reduce (mergePaths waitTime $ buildGraph waitTime (contents!!0))
-      (start:[finish]) = splitOn " " $ head (contents!!2)
+      (start:[finish]) =  words $ head (contents!!2)
       in
         print graph
 
 getBusData [] = []
 getBusData (x:xs) = (a,(read b::Float)/2):getBusData xs
-  where (a:[b]) = splitOn " " x
+  where (a:[b]) = words x
 
 buildGraph _ [] = []
 buildGraph b (x:xs) = addEdge n (v,t,total_w) (buildGraph b xs)
   where
     total_w = foldl (\c (l,wt) -> if l == t then c+wt else c) (read w::Float) b
-    (n:v:t:[w]) = splitOn " " x
+    (n:v:t:[w]) = words x
 
 --TODO reduce from multi to simple graph
 reduce [] = []
@@ -70,7 +69,7 @@ combEdges (p:ps) w = combEdges' w (tail ps) [(joinEdges p $ head ps)]
 
 -- TODO Fixing initial sum issue
 combEdges' [] acc = acc
-combEdges' (p:ps) acc = combEdges' w ps $ joinEdges (head acc) $ (v,t,wt)):acc
+combEdges' (p:ps) acc = combEdges' w ps $ joinEdges (head acc) ((v,t,wt):acc)
   where wt = w0 - w
         (v,t,w0) = p
 
