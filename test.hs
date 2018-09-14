@@ -42,13 +42,9 @@ splitData' (x:xs) acc
   | (x /= "") = splitData' xs $ x:acc
   | otherwise = (reverse acc):splitData' xs []
 
--- --TODO reduce from multi to simple graph
--- reduce [] = []
--- reduce ((v,e):gs) = (v,getShort e []):(reduce gs)
---
--- --TODO reduce from  multi to simple graph
--- getShort [] _ = []
--- getShort (e:es) c = getMin e []
+--TODO UNCHECKED reduce from multi to simple graph
+reduce [] = []
+reduce ((v,e):gs) = (v,rmDups e []):(reduce gs)
 
 -- rmDups checked
 rmDups [] acc = acc
