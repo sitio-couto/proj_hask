@@ -11,9 +11,8 @@ main = do
   text <- readFile "in0.txt"
   let contents = splitData $ lines text
       waitTime = getBusData $ contents!!1
-      graph = buildGraph waitTime (contents!!0)
-      procGraph = mergePaths waitTime graph
-      (start:[finish]) =  words $ head (contents!!2)
+      graph = mergePaths waitTime $ buildGraph waitTime (contents!!0)
+      (start:[finish]) = words $ head (contents!!2)
       in
         print graph
 
@@ -43,13 +42,30 @@ splitData' (x:xs) acc
   | (x /= "") = splitData' xs $ x:acc
   | otherwise = (reverse acc):splitData' xs []
 
---------------------------------------------------------------------------------
+-- --TODO reduce from multi to simple graph
+-- reduce [] = []
+-- reduce ((v,e):gs) = (v,getShort e []):(reduce gs)
+--
+-- --TODO reduce from  multi to simple graph
+-- getShort [] _ = []
+-- getShort (e:es) c = getMin e []
+
+-- rmDups checked
+rmDups [] acc = acc
+rmDups [e] acc = e:acc
+rmDups e acc = rmDups rest (m:acc)
+  where rest = foldr (\x c-> filter (\y-> x/=y) c) e k
+        m = foldl (\c x-> test x c) (head k) k
+        k = filter (\(n,_,_)-> n==v) e
+        (v,_,_) = head e
+        test (v,t,w) (a,b,c) = if w<c then (v,t,w) else (a,b,c)
+ --------------------------------------------------------------------------------
 
 -- mergeBusPaths Checked
 mergePaths [] g = g
 mergePaths (b:bs) g = foldVertex (mergePaths bs g) g b
 
--- TODO NOT Checked
+-- foldVertex Checked
 foldVertex [] g _ = g
 foldVertex (gi:gs) g b = addPaths gi (foldVertex gs g b) b
 
