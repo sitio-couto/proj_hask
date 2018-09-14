@@ -1,0 +1,14 @@
+a b "a-pe" 1
+a h "a-pe" 2
+b c "a-pe" 2
+h c "a-pe" 0.5
+c e "a-pe" 1
+c g "a-pe" 3
+e f "a-pe" 1
+g f "a-pe" 2
+b h "a-pe" 0.5
+e g "a-pe" 1
+
+linha-dummy 0.0
+
+a f
