@@ -15,22 +15,26 @@ main = do
       procGraph = mergePaths waitTime graph
       (start:[finish]) =  words $ head (contents!!2)
       in
-        print (graph == g)
+        print graph
 
 getBusData [] = []
 getBusData (x:xs) = (a,(read b::Float)/2):getBusData xs
   where (a:[b]) = words x
 
+-- Cria grafo somando tempos de espera de busao
 buildGraph _ [] = []
-buildGraph b (x:xs) = addEdge n (v,t,total_w) (buildGraph b xs)
-  where
-    total_w = foldl (\c (l,wt) -> if l == t then c+wt else c) (read w::Float) b
-    (n:v:t:[w]) = words x
+buildGraph b (x:xs) = addVertices v $ addEdge n (v,t,total_w) (buildGraph b xs)
+  where total_w = foldl (\c (l,wt) -> if l == t then c+wt else c) (read w::Float) b
+        (n:v:t:[w]) = words x
 
+-- Adiciona aresta a um vertice (adiciona o vertice se nao encontra-lo)
 addEdge node link [] = [(node,[link])]
-addEdge node link ((v,es):graph)
-  | (node == v) = (v,(link:es)):graph
-  | otherwise = (v,es):addEdge node link graph
+addEdge node link ((v,es):g)
+  | (node == v) = (v,(link:es)):g
+  | otherwise = (v,es):addEdge node link g
+
+-- Garante que vertices sem arestas de saida sejam adicionados
+addVertices v g = if (elem v $ map (\(x,_)-> x) g) then g else (v,[]):g
 
 splitData l = splitData' l []
 splitData' :: [String] -> [String] -> [[String]]
