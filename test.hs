@@ -1,23 +1,51 @@
-import Data.List.Split
-data Edge  a = Edge (a, String, Float) deriving (Show, Read, Eq)
-data Node  a = Node (a,[Edge a]) deriving (Show, Read, Eq)
-data Bus   a = Bus (String, Float)
 
 path = [("b","a-pe",0.4),("d","linha-370",0.1),("f","a-pe",3.0),("c","a-pe",0.3)]
 g0 = [("a",[("b","a-pe",0.4),("d","linha-370",0.1)]),("b",[("a","a-pe",0.6),("c","a-pe",0.5)]),("c",[("b","a-pe",0.5),("d","a-pe",0.3)])]
 g1 = [("d",[("c","a-pe",0.3),("f","a-pe",3.0)]),("f",[("h","a-pe",12.3),("h","linha-567",1.2)]),("h",[])]
+g00 = [("f",[("h","linha-567",7.2),("h","a-pe",12.3)]),("d",[("c","a-pe",0.3),("f","a-pe",3.0)]),("a",[("b","a-pe",0.4),("d","linha-370",7.6)])]
+g11 = [("c",[("b","a-pe",0.5),("d","a-pe",0.3)]),("b",[("a","a-pe",0.6),("c","a-pe",0.5)])]
 g3 = [("a",[("b","linha-666",0.5)]),("b",[("c","linha-666",0.2)]),("c",[("d","linha-666",0.1)]),("d",[])]
-g =g3
+g =g0++g1
 
+main = do
+  text <- readFile "in0.txt"
+  let contents = splitData $ lines text
+      waitTime = getBusData $ contents!!1
+      graph = buildGraph waitTime (contents!!0)
+      procGraph = mergePaths waitTime graph
+      (start:[finish]) =  words $ head (contents!!2)
+      in
+        print (graph == g)
+
+getBusData [] = []
+getBusData (x:xs) = (a,(read b::Float)/2):getBusData xs
+  where (a:[b]) = words x
+
+buildGraph _ [] = []
+buildGraph b (x:xs) = addEdge n (v,t,total_w) (buildGraph b xs)
+  where
+    total_w = foldl (\c (l,wt) -> if l == t then c+wt else c) (read w::Float) b
+    (n:v:t:[w]) = words x
+
+addEdge node link [] = [(node,[link])]
 addEdge node link ((v,es):graph)
   | (node == v) = (v,(link:es)):graph
   | otherwise = (v,es):addEdge node link graph
 
--- mergeBusPaths :: [Node a] -> [Bus b] -> [Node a]
-mergeBusPaths [] g = []
-mergeBusPaths ((l,_):bs) g = foldVertex (mergeBusPaths bs g) g l
+splitData l = splitData' l []
+splitData' :: [String] -> [String] -> [[String]]
+splitData' [] acc = [acc]
+splitData' (x:xs) acc
+  | (x /= "") = splitData' xs $ x:acc
+  | otherwise = (reverse acc):splitData' xs []
 
--- foldVertex :: [Node a] -> [Node a] -> Bus b -> [Node a]
+--------------------------------------------------------------------------------
+
+-- mergeBusPaths Checked
+mergePaths [] g = g
+mergePaths (b:bs) g = foldVertex (mergePaths bs g) g b
+
+-- TODO NOT Checked
 foldVertex [] g _ = g
 foldVertex (gi:gs) g b = addPaths gi (foldVertex gs g b) b
 
@@ -37,16 +65,15 @@ tracePaths g pe b p visited
     next = filter (\(_,mode,_) -> mode == b) pe
 
 -- combEdges Checked
-combEdges ((v,t,w):p) wt = combEdges' (tail p) [(joinEdges e0 $ head p)]
-  where e0 = (v,t,w+wt)
+combEdges (p:ps) wt = combEdges' wt (tail ps) [(joinEdges wt p $ head ps)]
 
 -- combEdges' Checked
-combEdges' [] acc = acc
-combEdges' p acc = combEdges' (tail p) $ (joinEdges (head acc) $ head p):acc
+combEdges' _ [] acc = acc
+combEdges' wt p acc = combEdges' wt (tail p) $ (joinEdges wt (head acc) $ head p):acc
 
 -- joinEdges Checked
-joinEdges (ov,ot,ow) (v,t,w) = (v,ot++" "++ov++" "++t,nw)
-  where nw = (fromIntegral $ floor ((ow+w)*10))/10
+joinEdges w (ov,ot,ow) (nv,nt,nw) = (nv,ot++" "++ov++" "++nt,tw)
+  where tw = (fromIntegral $ floor ((ow+nw-w)*10))/10
 
 -- GetE checked
 getE target g = edges

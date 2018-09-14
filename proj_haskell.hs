@@ -42,40 +42,38 @@ splitData' (x:xs) acc
   | otherwise = (reverse acc):splitData' xs []
 
 -- mergeBusPaths Checked
-mergePaths [] g = []
-mergePaths (b:bs) g = foldVertex (mergeBusPaths bs g) g b
+mergePaths [] g = g
+mergePaths (b:bs) g = foldVertex (mergePaths bs g) g b
 
--- TODO NOT Checked
+-- foldVertex Checked
 foldVertex [] g _ = g
 foldVertex (gi:gs) g b = addPaths gi (foldVertex gs g b) b
 
---TODO Fixing initial sum issue
-addPaths (v,e) g (l,w)
+--addPaths checked
+addPaths (v,e) g (l,wt)
   | (length paths < 2) = g
-  | otherwise = foldr (\x acc -> addEdge v x acc) g $ combEdges paths w
+  | otherwise = foldr (\x acc -> addEdge v x acc) g $ combEdges paths wt
   where paths = tracePaths g e l [] [v]
 
 -- tracePaths checked
-tracePaths g pe l p visited
-  | test = tracePaths g (getE v g) l (p++next) (v:visited)
+tracePaths g pe b p visited
+  | test = tracePaths g (getE v g) b (p++next) (v:visited)
   | otherwise = p
   where
     test = (next /= [])&&(not $ elem v visited)
     (v,_,_) = head next
-    next = filter (\(_,mode,_) -> mode == l) pe
+    next = filter (\(_,mode,_) -> mode == b) pe
 
--- TODO Fixing initial sum issue
-combEdges (p:ps) w = combEdges' w (tail ps) [(joinEdges p $ head ps)]
+-- combEdges Checked
+combEdges (p:ps) wt = combEdges' wt (tail ps) [(joinEdges wt p $ head ps)]
 
--- TODO Fixing initial sum issue
-combEdges' [] acc = acc
-combEdges' (p:ps) acc = combEdges' w ps $ joinEdges (head acc) ((v,t,wt):acc)
-  where wt = w0 - w
-        (v,t,w0) = p
+-- combEdges' Checked
+combEdges' _ [] acc = acc
+combEdges' wt p acc = combEdges' wt (tail p) $ (joinEdges wt (head acc) $ head p):acc
 
 -- joinEdges Checked
-joinEdges (ov,ot,ow) (v,t,w) = (v,ot++" "++ov++" "++t,nw)
-  where nw = (fromIntegral $ floor ((ow+w)*10))/10
+joinEdges w (ov,ot,ow) (nv,nt,nw) = (nv,ot++" "++ov++" "++nt,tw)
+  where tw = (fromIntegral $ floor ((ow+nw-w)*10))/10
 
 -- GetE checked
 getE target g = edges
