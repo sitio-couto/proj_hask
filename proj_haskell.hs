@@ -41,7 +41,7 @@ splitData' (x:xs) acc
   | (x /= "") = splitData' xs $ x:acc
   | otherwise = (reverse acc):splitData' xs []
 
--- mergeBusPaths Checked
+-- TODO DOESNT ITERATE CORRECTLY
 mergePaths [] g = g
 mergePaths (b:bs) g = foldVertex (mergePaths bs g) g b
 

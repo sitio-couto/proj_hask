@@ -1,0 +1,11 @@
+a b linha-0 1
+b c linha-0 1
+a b linha-1 1
+b c linha-1 1
+a b linha-2 1
+b c linha-2 1
+
+linha-0 2
+linha-1 2
+
+a c

@@ -8,13 +8,13 @@ g3 = [("a",[("b","linha-666",0.5)]),("b",[("c","linha-666",0.2)]),("c",[("d","li
 g =g0++g1
 
 main = do
-  text <- readFile "in0.txt"
-  let contents = splitData $ lines text
+  file <- getContents
+  let contents = splitData $ lines file
       waitTime = getBusData $ contents!!1
       graph = mergePaths waitTime $ buildGraph waitTime (contents!!0)
       (start:[finish]) = words $ head (contents!!2)
       in
-        print graph
+        mapM_ (print) graph 
 
 getBusData [] = []
 getBusData (x:xs) = (a,(read b::Float)/2):getBusData xs

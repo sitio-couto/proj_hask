@@ -1,0 +1,13 @@
+a b linha-0 100
+a b linha-1 1
+b c linha-0 1
+b c a-pe 100
+b d linha-1 100
+c d linha-0 1
+d a linha-0 100
+d a linha-1 100
+
+linha-0 1
+linha-1 1
+
+a d
