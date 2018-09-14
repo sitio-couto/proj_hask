@@ -11,7 +11,7 @@ main = do
   file <- getContents
   let contents = splitData $ lines file
       waitTime = getBusData $ contents!!1
-      graph = mergePaths waitTime $ buildGraph waitTime (contents!!0)
+      graph = reduce (mergePaths waitTime $ buildGraph waitTime (contents!!0))
       (start:[finish]) = words $ head (contents!!2)
       in
         mapM_ (print) graph

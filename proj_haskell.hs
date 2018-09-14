@@ -1,38 +1,30 @@
-
 main = do
-  text <- readFile "in0.txt"
-  let contents = splitData $ lines text
+  file <- getContents
+  let contents = splitData $ lines file
       waitTime = getBusData $ contents!!1
       graph = reduce (mergePaths waitTime $ buildGraph waitTime (contents!!0))
-      (start:[finish]) =  words $ head (contents!!2)
+      (start:[finish]) = words $ head (contents!!2)
       in
-        print graph
+        mapM_ (print) graph
 
 getBusData [] = []
 getBusData (x:xs) = (a,(read b::Float)/2):getBusData xs
   where (a:[b]) = words x
 
+-- Cria grafo somando tempos de espera de busao
 buildGraph _ [] = []
-buildGraph b (x:xs) = addEdge n (v,t,total_w) (buildGraph b xs)
-  where
-    total_w = foldl (\c (l,wt) -> if l == t then c+wt else c) (read w::Float) b
-    (n:v:t:[w]) = words x
+buildGraph b (x:xs) = addVertices v $ addEdge n (v,t,total_w) (buildGraph b xs)
+  where total_w = foldl (\c (l,wt) -> if l == t then c+wt else c) (read w::Float) b
+        (n:v:t:[w]) = words x
 
---TODO reduce from multi to simple graph
-reduce [] = []
-reduce ((v,e),gs) = (v,getShort e):(reduce gs)
-
---TODO reduce from  multi to simple graph
-getShort e = foldr (\(n,_,_) c -> (getMin $ filter (\(n,_,_) -> v == n)):c) [] e
-
---TODO reduce from mutli to simple graph
-getMin (k:ks) = foldl (\c x -> if test c x then c else x ) k ks
-  where test (v1,t1,w1) (v2,t2,w2) = w1 < w1
-
+-- Adiciona aresta a um vertice (adiciona o vertice se nao encontra-lo)
 addEdge node link [] = [(node,[link])]
-addEdge node link ((v,es):graph)
-  | (node == v) = (v,(link:es)):graph
-  | otherwise = (v,es):addEdge node link graph
+addEdge node link ((v,es):g)
+  | (node == v) = (v,(link:es)):g
+  | otherwise = (v,es):addEdge node link g
+
+-- Garante que vertices sem arestas de saida sejam adicionados
+addVertices v g = if (elem v $ map (\(x,_)-> x) g) then g else (v,[]):g
 
 splitData l = splitData' l []
 splitData' :: [String] -> [String] -> [[String]]
@@ -41,9 +33,25 @@ splitData' (x:xs) acc
   | (x /= "") = splitData' xs $ x:acc
   | otherwise = (reverse acc):splitData' xs []
 
--- TODO DOESNT ITERATE CORRECTLY
+--TODO UNCHECKED reduce from multi to simple graph
+reduce [] = []
+reduce ((v,e):gs) = (v,rmDups e []):(reduce gs)
+
+-- rmDups checked
+rmDups [] acc = acc
+rmDups [e] acc = e:acc
+rmDups e acc = rmDups rest (m:acc)
+  where rest = foldr (\x c-> filter (\y-> x/=y) c) e k
+        m = foldl (\c x-> test x c) (head k) k
+        k = filter (\(n,_,_)-> n==v) e
+        (v,_,_) = head e
+        test (v,t,w) (a,b,c) = if w<c then (v,t,w) else (a,b,c)
+ --------------------------------------------------------------------------------
+
+-- mergeBusPaths Checked
 mergePaths [] g = g
-mergePaths (b:bs) g = foldVertex (mergePaths bs g) g b
+mergePaths (b:bs) g = foldVertex newGraph newGraph b
+  where newGraph = mergePaths bs g
 
 -- foldVertex Checked
 foldVertex [] g _ = g
