@@ -14,7 +14,7 @@ main = do
       graph = mergePaths waitTime $ buildGraph waitTime (contents!!0)
       (start:[finish]) = words $ head (contents!!2)
       in
-        mapM_ (print) graph 
+        mapM_ (print) graph
 
 getBusData [] = []
 getBusData (x:xs) = (a,(read b::Float)/2):getBusData xs
@@ -59,7 +59,8 @@ rmDups e acc = rmDups rest (m:acc)
 
 -- mergeBusPaths Checked
 mergePaths [] g = g
-mergePaths (b:bs) g = foldVertex (mergePaths bs g) g b
+mergePaths (b:bs) g = foldVertex newGraph newGraph b
+  where newGraph = mergePaths bs g
 
 -- foldVertex Checked
 foldVertex [] g _ = g
