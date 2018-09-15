@@ -14,7 +14,7 @@ main = do
       graph = reduce (mergePaths waitTime $ buildGraph waitTime (contents!!0))
       (start:[finish]) = words $ head (contents!!2)
       in
-        mapM_ (print) $ dijkstras (sPath start graph) graph
+        print (backtrack finish $ dijkstras (sPath start graph) graph)
 
 -- ORGANIZING INPUT ------------------------------------------------------------
 
@@ -105,16 +105,17 @@ rmDups e acc = rmDups rest (m:acc)
 
 -- EXECUTING DIJKSTRA'S ALGORITHIM ---------------------------------------------
 
--- sPath checked
+-- Creates list of vertex with:(vertex,predecessor,trasnport,weigth,closure)
 sPath o g = foldr (\(v,_) pl-> test pl v) [] g
   where test pl v = if v/=o then (v,"","",ub,True):pl else (v,"","",0.0,True):pl
         ub = 999999999999999999999999.1
 
+-- Mark vertex as "closed" when its shortest path is found
 closeVertex v sp = foldr (test) [] sp
   where test p ps = if a==v then (a,b,c,d,False):ps else p:ps
           where (a,b,c,d,e) = p
 
---TODO TEST DIJKSTRAS
+-- Dijkstras algorithim to find shortest path
 dijkstras sp g
   | (osp == []) = sp
   | otherwise = dijkstras (closeVertex sv nsp) g
@@ -129,3 +130,9 @@ dijkstras sp g
     minWeigth old new = if wo<wn then old else new
       where (_,_,_,wo,_) = old
             (_,_,_,wn,_) = new
+
+-- BACKTRACK PATH FROM FINISH TO START -----------------------------------------
+
+backtrack "" _ = ""
+backtrack f sp = (backtrack pv sp)++" "++t++" "++f
+  where [(_,pv,t,_,_)] = filter (\(a,b,c,d,e)-> a==f) sp

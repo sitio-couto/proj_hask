@@ -1,15 +1,27 @@
+
 main = do
   file <- getContents
   let contents = splitData $ lines file
       waitTime = getBusData $ contents!!1
       graph = reduce (mergePaths waitTime $ buildGraph waitTime (contents!!0))
-      (start:[finish]) = words $ head (contents!!2)
+      (start:[end]) = words $ head (contents!!2)
       in
-        mapM_ (print) graph
+        mapM_ (print) $ getOutput start end graph
+
+-- ORGANIZING INPUT ------------------------------------------------------------
 
 getBusData [] = []
 getBusData (x:xs) = (a,(read b::Float)/2):getBusData xs
   where (a:[b]) = words x
+
+splitData l = splitData' l []
+splitData' :: [String] -> [String] -> [[String]]
+splitData' [] acc = [acc]
+splitData' (x:xs) acc
+  | (x /= "") = splitData' xs $ x:acc
+  | otherwise = (reverse acc):splitData' xs []
+
+-- BUILDING INITIAL GRAPH FROM INPUT -------------------------------------------
 
 -- Cria grafo somando tempos de espera de busao
 buildGraph _ [] = []
@@ -26,27 +38,7 @@ addEdge node link ((v,es):g)
 -- Garante que vertices sem arestas de saida sejam adicionados
 addVertices v g = if (elem v $ map (\(x,_)-> x) g) then g else (v,[]):g
 
-splitData l = splitData' l []
-splitData' :: [String] -> [String] -> [[String]]
-splitData' [] acc = [acc]
-splitData' (x:xs) acc
-  | (x /= "") = splitData' xs $ x:acc
-  | otherwise = (reverse acc):splitData' xs []
-
---TODO UNCHECKED reduce from multi to simple graph
-reduce [] = []
-reduce ((v,e):gs) = (v,rmDups e []):(reduce gs)
-
--- rmDups checked
-rmDups [] acc = acc
-rmDups [e] acc = e:acc
-rmDups e acc = rmDups rest (m:acc)
-  where rest = foldr (\x c-> filter (\y-> x/=y) c) e k
-        m = foldl (\c x-> test x c) (head k) k
-        k = filter (\(n,_,_)-> n==v) e
-        (v,_,_) = head e
-        test (v,t,w) (a,b,c) = if w<c then (v,t,w) else (a,b,c)
- --------------------------------------------------------------------------------
+ -- REARRANGING BUS PATHS ------------------------------------------------------
 
 -- mergeBusPaths Checked
 mergePaths [] g = g
@@ -86,3 +78,58 @@ joinEdges w (ov,ot,ow) (nv,nt,nw) = (nv,ot++" "++ov++" "++nt,tw)
 -- GetE checked
 getE target g = edges
   where (_,edges) = head $ filter (\(v,e) -> v == target) g
+
+-- REDUCING MULTI GRAPH TO SIMPLE GRAPH ----------------------------------------
+
+-- reduce checked
+reduce [] = []
+reduce ((v,e):gs) = (v,rmDups e []):(reduce gs)
+
+-- rmDups checked
+rmDups [] acc = acc
+rmDups [e] acc = e:acc
+rmDups e acc = rmDups rest (m:acc)
+  where rest = foldr (\x c-> filter (\y-> x/=y) c) e k
+        m = foldl (\c x-> test x c) (head k) k
+        k = filter (\(n,_,_)-> n==v) e
+        (v,_,_) = head e
+        test (v,t,w) (a,b,c) = if w<c then (v,t,w) else (a,b,c)
+
+-- EXECUTING DIJKSTRA'S ALGORITHIM ---------------------------------------------
+
+-- Creates list of vertex with:(vertex,predecessor,trasnport,weigth,closure)
+sPath o g = foldr (\(v,_) pl-> test pl v) [] g
+  where test pl v = if v/=o then (v,"","",ub,True):pl else (v,"","",0.0,True):pl
+        ub = 999999999999999999999999.1
+
+-- Mark vertex as "closed" when its shortest path is found
+closeVertex v sp = foldr (test) [] sp
+  where test p ps = if a==v then (a,b,c,d,False):ps else p:ps
+          where (a,b,c,d,e) = p
+
+-- Dijkstras algorithim to find shortest path
+dijkstras sp g
+  | (osp == []) = sp
+  | otherwise = dijkstras (closeVertex sv nsp) g
+  where
+    nsp = foldr (\x c-> foldr (\y ac->(test x y sv sw):ac) [] c) sp sve
+    sve = getE sv g
+    (sv,_,_,sw,_) = foldl (minWeigth) (head osp) (tail osp)
+    osp = filter (\(_,_,_,_,b)->b) sp
+    test e p sv sw = if (se==vp)&&(we+sw<wp) then (se,sv,y,we+sw,open) else p
+      where (se,y,we) = e
+            (vp,_,_,wp,open) = p
+    minWeigth old new = if wo<wn then old else new
+      where (_,_,_,wo,_) = old
+            (_,_,_,wn,_) = new
+
+-- BACKTRACK PATH FROM FINISH TO START -----------------------------------------
+
+backtrack "" _ = ""
+backtrack f sp = (backtrack pv sp)++" "++t++" "++f
+  where [(_,pv,t,_,_)] = filter (\(a,b,c,d,e)-> a==f) sp
+
+getOutput start end graph = [a,show b]
+  where [(_,_,_,b,_)] = filter (\(v,_,_,_,_)-> v==end) c
+        a = (drop 2 $ backtrack end c)
+        c = dijkstras (sPath start graph) graph
