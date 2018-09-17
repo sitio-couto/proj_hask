@@ -1,25 +1,17 @@
 
 main = do
   file <- getContents
-  let contents = splitData $ lines file
-      waitTime = getBusData $ contents!!1
-      graph = reduce (mergePaths waitTime $ buildGraph waitTime (contents!!0))
-      (start:[end]) = words $ head (contents!!2)
+  let paths:transport:[points] = splitData $ map (words) (lines file)
+      waitTimes = getTransportData transport
+      -- graph = reduce (mergePaths waitTimes $ buildGraph waitTimes paths)
       in
-        mapM_ (print) $ getOutput start end graph
+        mapM_ (print) $ paths --getOutput points graph
 
 -- ORGANIZING INPUT ------------------------------------------------------------
 
-getBusData [] = []
-getBusData (x:xs) = (a,(read b::Float)/2):getBusData xs
-  where (a:[b]) = words x
+getTransportData x = foldr (\(a:[b]) c -> (a,(read b::Float)/2):c) [] x
 
-splitData l = splitData' l []
-splitData' :: [String] -> [String] -> [[String]]
-splitData' [] acc = [acc]
-splitData' (x:xs) acc
-  | (x /= "") = splitData' xs $ x:acc
-  | otherwise = (reverse acc):splitData' xs []
+splitData x = foldr (\x c-> if x==[] then []:c else (x:head c):tail c) [[]] x
 
 -- BUILDING INITIAL GRAPH FROM INPUT -------------------------------------------
 
@@ -99,8 +91,7 @@ rmDups e acc = rmDups rest (m:acc)
 
 -- Creates list of vertex with:(vertex,predecessor,trasnport,weigth,closure)
 sPath o g = foldr (\(v,_) pl-> test pl v) [] g
-  where test pl v = if v/=o then (v,"","",ub,True):pl else (v,"","",0.0,True):pl
-        ub = 999999999999999999999999.1
+  where test pl v = if v/=o then (v,"","",1/0,True):pl else (v,"","",0,True):pl
 
 -- Mark vertex as "closed" when its shortest path is found
 closeVertex v sp = foldr (test) [] sp
@@ -129,7 +120,7 @@ backtrack "" _ = ""
 backtrack f sp = (backtrack pv sp)++" "++t++" "++f
   where [(_,pv,t,_,_)] = filter (\(a,b,c,d,e)-> a==f) sp
 
-getOutput start end graph = [a,show b]
+getOutput (start:[end]) graph = [a,show b]
   where [(_,_,_,b,_)] = filter (\(v,_,_,_,_)-> v==end) c
         a = (drop 2 $ backtrack end c)
         c = dijkstras (sPath start graph) graph
