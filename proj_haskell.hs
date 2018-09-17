@@ -3,9 +3,9 @@ main = do
   file <- getContents
   let paths:transport:[points] = splitData $ map (words) (lines file)
       waitTimes = getTransportData transport
-      -- graph = reduce (mergePaths waitTimes $ buildGraph waitTimes paths)
+      graph = reduce (mergePaths waitTimes $ buildGraph waitTimes paths)
       in
-        mapM_ (print) $ paths --getOutput points graph
+        mapM_ (print) $ getOutput points graph
 
 -- ORGANIZING INPUT ------------------------------------------------------------
 
@@ -19,7 +19,7 @@ splitData x = foldr (\x c-> if x==[] then []:c else (x:head c):tail c) [[]] x
 buildGraph _ [] = []
 buildGraph b (x:xs) = addVertices v $ addEdge n (v,t,total_w) (buildGraph b xs)
   where total_w = foldl (\c (l,wt) -> if l == t then c+wt else c) (read w::Float) b
-        (n:v:t:[w]) = words x
+        (n:v:t:[w]) = x
 
 -- Adiciona aresta a um vertice (adiciona o vertice se nao encontra-lo)
 addEdge node link [] = [(node,[link])]
@@ -120,7 +120,7 @@ backtrack "" _ = ""
 backtrack f sp = (backtrack pv sp)++" "++t++" "++f
   where [(_,pv,t,_,_)] = filter (\(a,b,c,d,e)-> a==f) sp
 
-getOutput (start:[end]) graph = [a,show b]
+getOutput [start:[end]] graph = [a,show b]
   where [(_,_,_,b,_)] = filter (\(v,_,_,_,_)-> v==end) c
         a = (drop 2 $ backtrack end c)
         c = dijkstras (sPath start graph) graph
