@@ -32,14 +32,8 @@ addVertices v g = if (elem v $ map (\(x,_)-> x) g) then g else (v,[]):g
 
  -- REARRANGING BUS PATHS ------------------------------------------------------
 
--- mergeBusPaths Checked
-mergePaths [] g = g
-mergePaths (b:bs) g = foldVertex newGraph newGraph b
-  where newGraph = mergePaths bs g
-
--- foldVertex Checked
-foldVertex [] g _ = g
-foldVertex (gi:gs) g b = addPaths gi (foldVertex gs g b) b
+-- mergePaths Checked
+mergePaths b g = foldr (\x c-> foldr (\y k-> addPaths y k x) c c) g b
 
 --addPaths checked
 addPaths (v,e) g (l,wt)
