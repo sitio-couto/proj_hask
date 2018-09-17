@@ -1,3 +1,4 @@
+import Data.List
 
 main = do
   file <- getContents
@@ -15,6 +16,9 @@ splitData x = foldr (\x c-> if x==[] then []:c else (x:head c):tail c) [[]] x
 
 -- BUILDING INITIAL GRAPH FROM INPUT -------------------------------------------
 
+buildGraph2 b x =
+  where addVertices map (head) (group $ sort (foldr (\[o:d:_] c-> a:d:c) [] x))
+
 -- Cria grafo somando tempos de espera de busao
 buildGraph _ [] = []
 buildGraph b (x:xs) = addVertices v $ addEdge n (v,t,total_w) (buildGraph b xs)
@@ -28,7 +32,10 @@ addEdge node link ((v,es):g)
   | otherwise = (v,es):addEdge node link g
 
 -- Garante que vertices sem arestas de saida sejam adicionados
-addVertices v g = if (elem v $ map (\(x,_)-> x) g) then g else (v,[]):g
+addVertices l =
+  if (elem v $ map (\(x,_)-> x) g) then g else (v,[]):g
+
+rmdups2 x = map (head) (group $ sort (foldr (\[o:d:_] c-> a:d:c) [] x))
 
  -- REARRANGING BUS PATHS ------------------------------------------------------
 

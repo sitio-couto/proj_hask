@@ -1,3 +1,4 @@
+import Data.List
 
 path = [("b","a-pe",0.4),("d","linha-370",0.1),("f","a-pe",3.0),("c","a-pe",0.3)]
 g0 = [("a",[("b","a-pe",0.4),("d","linha-370",0.1)]),("b",[("a","a-pe",0.6),("c","a-pe",0.5)]),("c",[("b","a-pe",0.5),("d","a-pe",0.3)])]
@@ -47,6 +48,8 @@ addEdge node link ((v,es):g)
 addVertices v g = if (elem v $ map (\(x,_)-> x) g) then g else (v,[]):g
 
  -- REARRANGING BUS PATHS ------------------------------------------------------
+
+rmdups2 x = map (head) (group $ sort (foldr (\(x:es c-> o:d:c) [] x))
 
 mergePaths b g = foldr (\x c-> foldr (\y k-> addPaths y k x) c c) g b
 
