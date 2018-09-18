@@ -22,7 +22,7 @@ addV x = map (\x->(head x,[])) $ group (sort $ foldr (\(n:v:_) c-> n:v:c) [] x)
 
 addE e g = map (\(v,es)-> if v == fst e then (v,(snd e):es) else (v,es)) g
 
-craftE x b = map (\(n:v:t:[w])->(n,(v,t,test b t $ read w::Float))) x
+craftE x b = map (\(n:v:t:[w])->(n,(v,(test b t $ read w::Float),t))) x
   where test b t w = if bf/=[] then w+(snd $ head bf) else w
           where bf = filter (\y->t == fst y) b
 
@@ -44,7 +44,7 @@ tracePaths g pe b p visited
   where
     test = (next /= [])&&(not $ elem v visited)
     (v,_,_) = head next
-    next = filter (\(_,mode,_) -> mode == b) pe
+    next = filter (\(_,_,mode) -> mode == b) pe
 
 -- combEdges Checked
 combEdges (p:ps) wt = combEdges' wt (tail ps) [(joinEdges wt p $ head ps)]
@@ -54,7 +54,7 @@ combEdges' _ [] acc = acc
 combEdges' wt p acc = combEdges' wt (tail p) $ (joinEdges wt (head acc) $ head p):acc
 
 -- joinEdges Checked
-joinEdges w (ov,ot,ow) (nv,nt,nw) = (nv,ot++" "++ov++" "++nt,tw)
+joinEdges w (ov,ow,ot) (nv,nw,nt) = (nv,tw,ot++" "++ov++" "++nt)
   where tw = (fromIntegral $ floor ((ow+nw-w)*10))/10
 
 -- GetE checked
@@ -65,17 +65,8 @@ getE target g = edges
 
 -- reduce checked
 reduce [] = []
-reduce ((v,e):gs) = (v,rmDups e []):(reduce gs)
-
--- rmDups checked
-rmDups [] acc = acc
-rmDups [e] acc = e:acc
-rmDups e acc = rmDups rest (m:acc)
-  where rest = foldr (\x c-> filter (/=x) c) e k
-        m = foldl (\c x-> test x c) (head k) k
-        k = filter (\(n,_,_)-> n==v) e
-        (v,_,_) = head e
-        test (v,t,w) (a,b,c) = if w<c then (v,t,w) else (a,b,c)
+reduce ((v,es):gs) = (v,rmDups es):reduce gs
+  where rmDups e = map (head) $ groupBy (\(x,_,_) (y,_,_)->x==y) (sort e)
 
 -- EXECUTING DIJKSTRA'S ALGORITHIM ---------------------------------------------
 
@@ -98,7 +89,7 @@ dijkstras sp g
     (sv,_,_,sw,_) = foldl (minWeigth) (head osp) (tail osp)
     osp = filter (\(_,_,_,_,b)->b) sp
     test e p sv sw = if (se==vp)&&(we+sw<wp) then (se,sv,y,we+sw,open) else p
-      where (se,y,we) = e
+      where (se,we,y) = e
             (vp,_,_,wp,open) = p
     minWeigth old new = if wo<wn then old else new
       where (_,_,_,wo,_) = old
