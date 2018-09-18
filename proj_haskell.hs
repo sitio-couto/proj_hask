@@ -10,34 +10,23 @@ main = do
 
 -- ORGANIZING INPUT ------------------------------------------------------------
 
-getTransportData x = foldr (\(a:[b]) c -> (a,(read b::Float)/2):c) [] x
+getTransportData ip = foldr (\(a:[b]) c -> (a,(read b::Float)/2):c) [] ip
 
-splitData x = foldr (\x c-> if x==[] then []:c else (x:head c):tail c) [[]] x
+splitData ip = foldr (\x c-> if x==[] then []:c else (x:head c):tail c) [[]] ip
 
 -- BUILDING INITIAL GRAPH FROM INPUT -------------------------------------------
 
-buildGraph2 b x =
-  where addVertices map (head) (group $ sort (foldr (\[o:d:_] c-> a:d:c) [] x))
+buildGraph b ip = foldr (\y c-> addE y c) (addV ip) (craftE ip b)
 
--- Cria grafo somando tempos de espera de busao
-buildGraph _ [] = []
-buildGraph b (x:xs) = addVertices v $ addEdge n (v,t,total_w) (buildGraph b xs)
-  where total_w = foldl (\c (l,wt) -> if l == t then c+wt else c) (read w::Float) b
-        (n:v:t:[w]) = x
+addV x = map (\x->(head x,[])) $ group (sort $ foldr (\(n:v:_) c-> n:v:c) [] x)
 
--- Adiciona aresta a um vertice (adiciona o vertice se nao encontra-lo)
-addEdge node link [] = [(node,[link])]
-addEdge node link ((v,es):g)
-  | (node == v) = (v,(link:es)):g
-  | otherwise = (v,es):addEdge node link g
+addE e g = map (\(v,es)-> if v == fst e then (v,(snd e):es) else (v,es)) g
 
--- Garante que vertices sem arestas de saida sejam adicionados
-addVertices l =
-  if (elem v $ map (\(x,_)-> x) g) then g else (v,[]):g
+craftE x b = map (\(n:v:t:[w])->(n,(v,t,test b t $ read w::Float))) x
+  where test b t w = if bf/=[] then w+(snd $ head bf) else w
+          where bf = filter (\y->t == fst y) b
 
-rmdups2 x = map (head) (group $ sort (foldr (\[o:d:_] c-> a:d:c) [] x))
-
- -- REARRANGING BUS PATHS ------------------------------------------------------
+-- REARRANGING BUS PATHS ------------------------------------------------------
 
 -- mergePaths Checked
 mergePaths b g = foldr (\x c-> foldr (\y k-> addPaths y k x) c c) g b
@@ -82,7 +71,7 @@ reduce ((v,e):gs) = (v,rmDups e []):(reduce gs)
 rmDups [] acc = acc
 rmDups [e] acc = e:acc
 rmDups e acc = rmDups rest (m:acc)
-  where rest = foldr (\x c-> filter (\y-> x/=y) c) e k
+  where rest = foldr (\x c-> filter (/=x) c) e k
         m = foldl (\c x-> test x c) (head k) k
         k = filter (\(n,_,_)-> n==v) e
         (v,_,_) = head e
@@ -125,3 +114,10 @@ getOutput [start:[end]] graph = [a,show b]
   where [(_,_,_,b,_)] = filter (\(v,_,_,_,_)-> v==end) c
         a = (drop 2 $ backtrack end c)
         c = dijkstras (sPath start graph) graph
+
+-- TO FURTHER REMOVAL ----------------------------------------------------------
+-- Adiciona aresta a um vertice (adiciona o vertice se nao encontra-lo)
+addEdge node link [] = [(node,[link])]
+addEdge node link ((v,es):g)
+  | (node == v) = (v,(link:es)):g
+  | otherwise = (v,es):addEdge node link g

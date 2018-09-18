@@ -49,7 +49,7 @@ addVertices v g = if (elem v $ map (\(x,_)-> x) g) then g else (v,[]):g
 
  -- REARRANGING BUS PATHS ------------------------------------------------------
 
-rmdups2 x = map (head) (group $ sort (foldr (\(x:es c-> o:d:c) [] x))
+rmdups2 x = map (head) (group $ sort (foldr (\(o:d:es) c-> o:d:c) [] x))
 
 mergePaths b g = foldr (\x c-> foldr (\y k-> addPaths y k x) c c) g b
 
@@ -132,3 +132,9 @@ dijkstras sp g
 backtrack "" _ = ""
 backtrack f sp = (backtrack pv sp)++" "++t++" "++f
   where [(_,pv,t,_,_)] = filter (\(a,b,c,d,e)-> a==f) sp
+
+-- DEBUGGING ------------------------------------------------------------------
+
+craftE x b = map (\(n:v:t:[w])->(n,(v,t,test b t $ read w::Float))) x
+  where test b t w = if bf/=[] then w+(snd $ head bf) else w
+          where bf = filter (\y->t == fst y) b
