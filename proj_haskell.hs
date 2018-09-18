@@ -32,9 +32,13 @@ craftE x b = map (\(n:v:t:[w])->(n,(v,(test b t $ read w::Float),t))) x
 mergePaths b g = foldr (\x c-> foldr (\y k-> addPaths y k x) c c) g b
 
 --addPaths checked
+-- addPaths (v,e) g (l,wt)
+--   | (length paths < 2) = g
+--   | otherwise = foldl (\c e->addE e c) g $ combEdges paths wt
+--   where paths = tracePaths g e l [] [v]
 addPaths (v,e) g (l,wt)
   | (length paths < 2) = g
-  | otherwise = foldr (\x acc -> addEdge v x acc) g $ combEdges paths wt
+  | otherwise = foldr (\x acc -> addE (v,x) g) g $ combEdges paths wt
   where paths = tracePaths g e l [] [v]
 
 -- tracePaths checked
@@ -58,8 +62,7 @@ joinEdges w (ov,ow,ot) (nv,nw,nt) = (nv,tw,ot++" "++ov++" "++nt)
   where tw = (fromIntegral $ floor ((ow+nw-w)*10))/10
 
 -- GetE checked
-getE target g = edges
-  where (_,edges) = head $ filter (\(v,e) -> v == target) g
+getE target g = snd (head $ filter (\(v,e) -> v == target) g)
 
 -- REDUCING MULTI GRAPH TO SIMPLE GRAPH ----------------------------------------
 
