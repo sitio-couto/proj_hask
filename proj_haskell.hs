@@ -31,24 +31,23 @@ craftE x b = map (\(n:v:t:[w])->(n,(v,(test b t $ read w::Float),t))) x
 -- mergePaths Checked
 mergePaths b g = foldr (\x c-> foldr (\y k-> addPaths y k x) c c) g b
 
-addPaths (v,e) g (l,wt)
-  | (length paths < 2) = g
-  | otherwise = foldr (\x c -> addE (v,x) c) g $ combE paths wt []
+-- addPaths Checked
+addPaths (v,e) g (l,wt) = foldr (\x c -> addE (v,x) c) g $ combE paths wt []
   where paths = tracePaths g e l [] [v]
 
 -- tracePaths checked
 tracePaths g pe b p visited
   | test = tracePaths g (getE v g) b (p++next) (v:visited)
   | otherwise = p
-  where
-    test = (next /= [])&&(not $ elem v visited)
-    (v,_,_) = head next
-    next = filter (\(_,_,mode) -> mode == b) pe
+  where test = (next /= [])&&(not $ elem v visited)
+        (v,_,_) = head next
+        next = filter (\(_,_,mode) -> mode == b) pe
 
 -- GetE checked
 getE target g = snd (head $ filter (\(v,e) -> v == target) g)
 
--- combEdges Checked
+-- combE Checked
+combE [] _ c = c
 combE (_:[]) _ c = c
 combE ((ov,ow,ot):(nv,nw,nt):ps) wt c = combE (x:ps) wt (x:c)
   where x = (nv,(fromIntegral $ floor ((ow+nw-wt)*10))/10,ot++" "++ov++" "++nt)
