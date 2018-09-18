@@ -31,14 +31,9 @@ craftE x b = map (\(n:v:t:[w])->(n,(v,(test b t $ read w::Float),t))) x
 -- mergePaths Checked
 mergePaths b g = foldr (\x c-> foldr (\y k-> addPaths y k x) c c) g b
 
---addPaths checked
--- addPaths (v,e) g (l,wt)
---   | (length paths < 2) = g
---   | otherwise = foldl (\c e->addE e c) g $ combEdges paths wt
---   where paths = tracePaths g e l [] [v]
 addPaths (v,e) g (l,wt)
   | (length paths < 2) = g
-  | otherwise = foldr (\x acc -> addE (v,x) g) g $ combEdges paths wt
+  | otherwise = foldr (\x c -> addE (v,x) c) g $ combEdges paths wt
   where paths = tracePaths g e l [] [v]
 
 -- tracePaths checked
@@ -110,8 +105,3 @@ getOutput [start:[end]] graph = [a,show b]
         c = dijkstras (sPath start graph) graph
 
 -- TO FURTHER REMOVAL ----------------------------------------------------------
--- Adiciona aresta a um vertice (adiciona o vertice se nao encontra-lo)
-addEdge node link [] = [(node,[link])]
-addEdge node link ((v,es):g)
-  | (node == v) = (v,(link:es)):g
-  | otherwise = (v,es):addEdge node link g
