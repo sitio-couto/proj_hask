@@ -33,7 +33,7 @@ mergePaths b g = foldr (\x c-> foldr (\y k-> addPaths y k x) c c) g b
 
 addPaths (v,e) g (l,wt)
   | (length paths < 2) = g
-  | otherwise = foldr (\x c -> addE (v,x) c) g $ combEdges paths wt
+  | otherwise = foldr (\x c -> addE (v,x) c) g $ combE paths wt []
   where paths = tracePaths g e l [] [v]
 
 -- tracePaths checked
@@ -45,19 +45,13 @@ tracePaths g pe b p visited
     (v,_,_) = head next
     next = filter (\(_,_,mode) -> mode == b) pe
 
--- combEdges Checked
-combEdges (p:ps) wt = combEdges' wt (tail ps) [(joinEdges wt p $ head ps)]
-
--- combEdges' Checked
-combEdges' _ [] acc = acc
-combEdges' wt p acc = combEdges' wt (tail p) $ (joinEdges wt (head acc) $ head p):acc
-
--- joinEdges Checked
-joinEdges w (ov,ow,ot) (nv,nw,nt) = (nv,tw,ot++" "++ov++" "++nt)
-  where tw = (fromIntegral $ floor ((ow+nw-w)*10))/10
-
 -- GetE checked
 getE target g = snd (head $ filter (\(v,e) -> v == target) g)
+
+-- combEdges Checked
+combE (_:[]) _ c = c
+combE ((ov,ow,ot):(nv,nw,nt):ps) wt c = combE (x:ps) wt (x:c)
+  where x = (nv,(fromIntegral $ floor ((ow+nw-wt)*10))/10,ot++" "++ov++" "++nt)
 
 -- REDUCING MULTI GRAPH TO SIMPLE GRAPH ----------------------------------------
 
