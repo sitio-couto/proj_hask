@@ -28,24 +28,19 @@ craftE x b = map (\(n:v:t:[w])->(n,(v,(test b t $ read w::Float),t))) x
 
 -- REARRANGING BUS PATHS ------------------------------------------------------
 
--- mergePaths Checked
 mergePaths b g = foldr (\x c-> foldr (\y k-> addPaths y k x) c c) g b
 
--- addPaths Checked
 addPaths (v,e) g (l,wt) = foldr (\x c -> addE (v,x) c) g $ combE paths wt []
   where paths = trace g e l [] [v]
 
--- trace checked
 trace g pe b p c
   | (next /= []) = trace g (getE v g) b (p++next) (v:c)
   | otherwise = p
   where (v,_,_) = head next
         next = filter (\(v,_,mode) -> (mode == b)&&(not $ elem v c)) pe
 
--- GetE checked
 getE target g = snd (head $ filter (\(v,_) -> v == target) g)
 
--- combE Checked
 combE [] _ c = c
 combE (_:[]) _ c = c
 combE ((ov,ow,ot):(nv,nw,nt):ps) wt c = combE (x:ps) wt (x:c)
@@ -59,11 +54,9 @@ reduce ((v,es):gs) = (v,rmDups es):reduce gs
 
 -- EXECUTING DIJKSTRA'S ALGORITHIM ---------------------------------------------
 
--- Creates list of vertex with:(weigth,closure,vertex,predecessor,trasnport)
 sPath o g = sort $ foldr (\(v,_) pl-> mq pl v) [] g
   where mq pl v = if v/=o then (False,1/0,v,"",""):pl else (False,0,v,"",""):pl
 
--- Dijkstras algorithim to find shortest path
 dijk ((True,b,c,d,e):sp) _ = (True,b,c,d,e):sp
 dijk ((a,b,c,d,e):sp) g = dijk (sort $ (True,b,c,d,e):tryRelax sp (getE c g)) g
   where tryRelax sp es = foldr (\e k-> map (\x-> test e x) k) sp es
