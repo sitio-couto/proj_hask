@@ -33,15 +33,14 @@ mergePaths b g = foldr (\x c-> foldr (\y k-> addPaths y k x) c c) g b
 
 -- addPaths Checked
 addPaths (v,e) g (l,wt) = foldr (\x c -> addE (v,x) c) g $ combE paths wt []
-  where paths = tracePaths g e l [] [v]
+  where paths = trace g e l [] [v]
 
--- tracePaths checked
-tracePaths g pe b p visited
-  | test = tracePaths g (getE v g) b (p++next) (v:visited)
+-- trace checked
+trace g pe b p c
+  | (next /= []) = trace g (getE v g) b (p++next) (v:c)
   | otherwise = p
-  where test = (next /= [])&&(not $ elem v visited)
-        (v,_,_) = head next
-        next = filter (\(_,_,mode) -> mode == b) pe
+  where (v,_,_) = head next
+        next = filter (\(v,_,mode) -> (mode == b)&&(not $ elem v c)) pe
 
 -- GetE checked
 getE target g = snd (head $ filter (\(v,_) -> v == target) g)
@@ -54,7 +53,6 @@ combE ((ov,ow,ot):(nv,nw,nt):ps) wt c = combE (x:ps) wt (x:c)
 
 -- REDUCING MULTI GRAPH TO SIMPLE GRAPH ----------------------------------------
 
--- reduce checked
 reduce [] = []
 reduce ((v,es):gs) = (v,rmDups es):reduce gs
   where rmDups e = map (head) $ groupBy (\(x,_,_) (y,_,_)->x==y) (sort e)
@@ -81,5 +79,3 @@ backtrack f sp = (backtrack pv sp)++" "++t++" "++f
 getOutput [start:[end]] graph = [(drop 2 $ backtrack end shortPaths),show b]
   where [(_,b,_,_,_)] = filter (\(_,_,v,_,_)-> v==end) shortPaths
         shortPaths = dijk (sPath start graph) graph
-
--- TO FURTHER REMOVAL ----------------------------------------------------------
