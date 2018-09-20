@@ -44,7 +44,7 @@ tracePaths g pe b p visited
         next = filter (\(_,_,mode) -> mode == b) pe
 
 -- GetE checked
-getE target g = snd (head $ filter (\(v,e) -> v == target) g)
+getE target g = snd (head $ filter (\(v,_) -> v == target) g)
 
 -- combE Checked
 combE [] _ c = c
@@ -61,40 +61,25 @@ reduce ((v,es):gs) = (v,rmDups es):reduce gs
 
 -- EXECUTING DIJKSTRA'S ALGORITHIM ---------------------------------------------
 
--- Creates list of vertex with:(vertex,predecessor,trasnport,weigth,closure)
-sPath o g = foldr (\(v,_) pl-> test pl v) [] g
-  where test pl v = if v/=o then (v,"","",1/0,True):pl else (v,"","",0,True):pl
-
--- Mark vertex as "closed" when its shortest path is found
-closeVertex v sp = foldr (test) [] sp
-  where test p ps = if a==v then (a,b,c,d,False):ps else p:ps
-          where (a,b,c,d,e) = p
+-- Creates list of vertex with:(weigth,closure,vertex,predecessor,trasnport)
+sPath o g = sort $ foldr (\(v,_) pl-> mq pl v) [] g
+  where mq pl v = if v/=o then (False,1/0,v,"",""):pl else (False,0,v,"",""):pl
 
 -- Dijkstras algorithim to find shortest path
-dijkstras sp g
-  | (osp == []) = sp
-  | otherwise = dijkstras (closeVertex sv nsp) g
-  where
-    nsp = foldr (\x c-> foldr (\y ac->(test x y sv sw):ac) [] c) sp sve
-    sve = getE sv g
-    (sv,_,_,sw,_) = foldl (minWeigth) (head osp) (tail osp)
-    osp = filter (\(_,_,_,_,b)->b) sp
-    test e p sv sw = if (se==vp)&&(we+sw<wp) then (se,sv,y,we+sw,open) else p
-      where (se,we,y) = e
-            (vp,_,_,wp,open) = p
-    minWeigth old new = if wo<wn then old else new
-      where (_,_,_,wo,_) = old
-            (_,_,_,wn,_) = new
+dijk ((True,b,c,d,e):sp) _ = (True,b,c,d,e):sp
+dijk ((a,b,c,d,e):sp) g = dijk (sort $ (True,b,c,d,e):tryRelax sp (getE c g)) g
+  where tryRelax sp es = foldr (\e k-> map (\x-> test e x) k) sp es
+        test (v,w,t) x = if (v==j)&&(w+b<i) then (h,w+b,j,c,t) else x
+          where (h,i,j,k,l) = x
 
 -- BACKTRACK PATH FROM FINISH TO START -----------------------------------------
 
 backtrack "" _ = ""
 backtrack f sp = (backtrack pv sp)++" "++t++" "++f
-  where [(_,pv,t,_,_)] = filter (\(a,b,c,d,e)-> a==f) sp
+  where [(_,_,_,pv,t)] = filter (\(a,b,c,d,e)-> c==f) sp
 
-getOutput [start:[end]] graph = [a,show b]
-  where [(_,_,_,b,_)] = filter (\(v,_,_,_,_)-> v==end) c
-        a = (drop 2 $ backtrack end c)
-        c = dijkstras (sPath start graph) graph
+getOutput [start:[end]] graph = [(drop 2 $ backtrack end shortPaths),show b]
+  where [(_,b,_,_,_)] = filter (\(_,_,v,_,_)-> v==end) shortPaths
+        shortPaths = dijk (sPath start graph) graph
 
 -- TO FURTHER REMOVAL ----------------------------------------------------------
