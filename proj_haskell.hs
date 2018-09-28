@@ -6,7 +6,7 @@ main = do
       waitTimes = getTransportData transport
       graph = reduce (mergePaths waitTimes $ buildGraph waitTimes paths)
       in
-        mapM_ (print) $ getOutput points graph
+        mapM_ (putStrLn) $ getOutput points graph
 
 -- ORGANIZING INPUT ------------------------------------------------------------
 
